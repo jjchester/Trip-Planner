@@ -66,9 +66,7 @@
             const trips = response.data;
 
             const resultsDiv = document.getElementById('results');
-            console.log(resultsDiv);
             resultsDiv.innerHTML = '';
-            console.log(trips);
 
             if (trips.length == 0) {
                 const tripContainer = document.createElement('div'); // Create a container for each trip
@@ -126,5 +124,9 @@
         } catch (error) {
             console.error('Error fetching data:', error);
         }
+    });
+
+    document.getElementById('sort_option').addEventListener("change", (event) => {
+        document.getElementById('search-button').click();
     });
 </script>

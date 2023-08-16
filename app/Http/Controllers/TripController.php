@@ -20,7 +20,7 @@ class TripController extends Controller
     {
         $departureAirportCode = $request->query('departure_airport');
         $arrivalAirportCode = $request->query('arrival_airport');
-        $sort = $request->query('sort');
+        $sort = $request->query('sort') ?? 'sort';
 
         $flights = Flight::with(['airline', 'departureAirport', 'arrivalAirport'])
             ->whereHas('departureAirport', function ($query) use ($departureAirportCode) {

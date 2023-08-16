@@ -30,6 +30,26 @@ class AirportSeeder extends Seeder
                 'longitude' => -123.179192,
                 'timezone' => 'America/Vancouver',
             ],
+            [
+                'iata_code' => 'LAX',
+                'city_code' => 'LSA',
+                'name' => 'Los Angeles International',
+                'city' => 'Los Angeles',
+                'country_code' => 'US',
+                'latitude' => 33.942536,
+                'longitude' => -118.408075,
+                'timezone' => 'America/Los_Angeles',
+            ],
+            [
+                'iata_code' => 'JFK',
+                'city_code' => 'NYC',
+                'name' => 'John F. Kennedy International',
+                'city' => 'New York',
+                'country_code' => 'US',
+                'latitude' => 40.641311,
+                'longitude' => -73.778139,
+                'timezone' => 'America/New_York',
+            ]
         ];
 
         foreach ($airportsData as $data) {

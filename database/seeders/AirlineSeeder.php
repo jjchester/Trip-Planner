@@ -14,6 +14,15 @@ class AirlineSeeder extends Seeder
                 'iata_code' => 'AC',
                 'name' => 'Air Canada',
             ],
+            [
+                'iata_code' => 'DL',
+                'name' => 'Delta Air Lines',
+            ],
+            [
+                'iata_code' => 'UA',
+                'name' => 'United Airlines',
+            ],
+            // Add more airlines if needed
         ];
 
         foreach ($airlinesData as $data) {

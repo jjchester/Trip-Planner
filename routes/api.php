@@ -19,6 +19,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
-Route::get('/trips/one-way/{departureAirportCode}/{arrivalAirportCode}', [TripController::class, 'oneWayTrip']);
-Route::get('/trips/round-trip/{departureAirportCode}/{arrivalAirportCode}', [TripController::class, 'roundTrip']);
+Route::get('/trips/one-way', [TripController::class, 'oneWayTrip']);
+Route::get('/trips/round-trip', [TripController::class, 'roundTrip']);

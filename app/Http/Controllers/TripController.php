@@ -8,68 +8,122 @@ use Illuminate\Http\Request;
 
 class TripController extends Controller
 {
-    public function oneWayTrip($departureAirportCode, $arrivalAirportCode)
-    {
-        $departureAirport = Airport::where('iata_code', $departureAirportCode)->firstOrFail();
-        $arrivalAirport = Airport::where('iata_code', $arrivalAirportCode)->firstOrFail();
 
-        $flights = Flight::where('departure_airport_id', $departureAirport->id)
-            ->where('arrival_airport_id', $arrivalAirport->id)
+    public function searchView()
+    {
+        $airports = Airport::all(); // Retrieve the list of airports from the database
+
+        return view('trip-search', compact('airports'));
+    }
+
+    public function oneWayTrip(Request $request)
+    {
+        $departureAirportCode = $request->query('departure_airport');
+        $arrivalAirportCode = $request->query('arrival_airport');
+        $sort = $request->query('sort');
+
+        $flights = Flight::with(['airline', 'departureAirport', 'arrivalAirport'])
+            ->whereHas('departureAirport', function ($query) use ($departureAirportCode) {
+                $query->where('iata_code', $departureAirportCode);
+            })
+            ->whereHas('arrivalAirport', function ($query) use ($arrivalAirportCode) {
+                $query->where('iata_code', $arrivalAirportCode);
+            })
             ->get();
 
-        $trips = [];
+        $tripOptions = [];
+
         foreach ($flights as $flight) {
-            $trip = [
-                'type' => 'one-way',
+            $tripOptions[] = [
                 'airline' => $flight->airline->name,
                 'flight_number' => $flight->flight_number,
-                'departure_airport' => $departureAirport->name,
+                'departure_airport' => $flight->departureAirport->name,
+                'arrival_airport' => $flight->arrivalAirport->name,
                 'departure_time' => $flight->departure_time,
-                'arrival_airport' => $arrivalAirport->name,
                 'duration_minutes' => $flight->duration_minutes,
                 'price' => $flight->price,
             ];
-
-            $trips[] = $trip;
         }
-        return response()->json(['trips' => $trips]);
+        usort($tripOptions, array($this, $sort == 'price' ? "compareByPrice" : "compareByDuration"));
+        return response()->json($tripOptions);
     }
 
-    public function roundTrip($departureAirportCode, $arrivalAirportCode)
+    function compareByPrice($a, $b)
     {
-        $outboundFlights = Flight::where('departure_airport_id', $departureAirport->id)
-            ->where('arrival_airport_id', $arrivalAirport->id)
+        return ($a['price'] > $b['price']);
+    }
+
+    function compareByDuration($a, $b)
+    {
+        return ($a['duration_minutes'] > $b['duration_minutes']);
+    }
+
+    function compareByTotalPrice($a, $b)
+    {
+        return ($a['total_price'] > $b['total_price']);
+    }
+
+    function compareByTotalDuration($a, $b)
+    {
+        return ($a['total_duration'] > $b['total_duration']);
+    }
+
+    public function roundTrip(Request $request)
+    {
+        $departureAirportCode = $request->query('departure_airport');
+        $arrivalAirportCode = $request->query('arrival_airport');
+        $sort = $request->query('sort');
+
+        // Find outbound flights
+        $outboundFlights = Flight::with(['airline', 'departureAirport', 'arrivalAirport'])
+            ->whereHas('departureAirport', function ($query) use ($departureAirportCode) {
+                $query->where('iata_code', $departureAirportCode);
+            })
+            ->whereHas('arrivalAirport', function ($query) use ($arrivalAirportCode) {
+                $query->where('iata_code', $arrivalAirportCode);
+            })
             ->get();
 
-        $inboundFlights = Flight::where('departure_airport_id', $arrivalAirport->id)
-            ->where('arrival_airport_id', $departureAirport->id)
+        // Find return flights
+        $returnFlights = Flight::with(['airline', 'departureAirport', 'arrivalAirport'])
+            ->whereHas('departureAirport', function ($query) use ($arrivalAirportCode) {
+                $query->where('iata_code', $arrivalAirportCode);
+            })
+            ->whereHas('arrivalAirport', function ($query) use ($departureAirportCode) {
+                $query->where('iata_code', $departureAirportCode);
+            })
             ->get();
 
-        $trips = [];
+        $roundTripOptions = [];
+
         foreach ($outboundFlights as $outbound) {
-            foreach ($inboundFlights as $inbound) {
-                $trip = [
-                    'type' => 'round-trip',
-                    'outbound_airline' => $outbound->airline->name,
-                    'outbound_flight_number' => $outbound->flight_number,
-                    'outbound_departure_airport' => $departureAirport->name,
-                    'outbound_departure_time' => $outbound->departure_time,
-                    'outbound_arrival_airport' => $arrivalAirport->name,
-                    'outbound_duration_minutes' => $outbound->duration_minutes,
-                    'outbound_price' => $outbound->price,
-                    'inbound_airline' => $inbound->airline->name,
-                    'inbound_flight_number' => $inbound->flight_number,
-                    'inbound_departure_airport' => $arrivalAirport->name,
-                    'inbound_departure_time' => $inbound->departure_time,
-                    'inbound_arrival_airport' => $departureAirport->name,
-                    'inbound_duration_minutes' => $inbound->duration_minutes,
-                    'inbound_price' => $inbound->price,
+            foreach ($returnFlights as $return) {
+                $roundTripOptions[] = [
+                    'outbound' => [
+                        'airline' => $outbound->airline->name,
+                        'flight_number' => $outbound->flight_number,
+                        'departure_airport' => $outbound->departureAirport->name,
+                        'arrival_airport' => $outbound->arrivalAirport->name,
+                        'departure_time' => $outbound->departure_time,
+                        'duration_minutes' => $outbound->duration_minutes,
+                        'price' => $outbound->price,
+                    ],
+                    'return' => [
+                        'airline' => $return->airline->name,
+                        'flight_number' => $return->flight_number,
+                        'departure_airport' => $return->departureAirport->name,
+                        'arrival_airport' => $return->arrivalAirport->name,
+                        'departure_time' => $return->departure_time,
+                        'duration_minutes' => $return->duration_minutes,
+                        'price' => $return->price,
+                    ],
+                    'total_price' => $outbound->price + $return->price,
+                    'total_duration' => $outbound->duration_minutes + $return->duration_minutes
                 ];
-
-                $trips[] = $trip;
             }
         }
+        usort($roundTripOptions, array($this, $sort == 'price' ? "compareByTotalPrice" : "compareByTotalDuration"));
 
-        return response()->json(['trips' => $trips]);
+        return response()->json($roundTripOptions);
     }
 }

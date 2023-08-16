@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use App\Models\Flight;
 use App\Models\Airline;
@@ -24,13 +26,39 @@ class FlightSeeder extends Seeder
             [
                 'airline' => 'AC',
                 'number' => '304',
-                'departure_airport' => 'YVR', // Assuming a typo and correcting it to 'YVR'
-                'departure_time' => '08:55', // Assuming a typo and correcting it to '08:55'
+                'departure_airport' => 'YVR',
+                'departure_time' => '08:55',
                 'arrival_airport' => 'YUL',
                 'duration_minutes' => 277,
                 'price' => '499.93',
             ],
-            // Add more flights if needed
+            [
+                'airline' => 'DL',
+                'number' => '123',
+                'departure_airport' => 'LAX',
+                'departure_time' => '10:00',
+                'arrival_airport' => 'JFK',
+                'duration_minutes' => 360,
+                'price' => '800.00',
+            ],
+            [
+                'airline' => 'DL',
+                'number' => '124',
+                'departure_airport' => 'JFK',
+                'departure_time' => '12:00',
+                'arrival_airport' => 'LAX',
+                'duration_minutes' => 360,
+                'price' => '700.00',
+            ],
+            [
+                'airline' => 'UA',
+                'number' => '123',
+                'departure_airport' => 'YUL',
+                'departure_time' => '12:00',
+                'arrival_airport' => 'YVR',
+                'duration_minutes' => 300,
+                'price' => '700.00',
+            ]
         ];
 
         foreach ($flightsData as $data) {
